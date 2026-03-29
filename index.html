@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bruno Rossler — Tutoring at Home | San Juan Capistrano</title>
@@ -304,6 +303,33 @@
   .form-submit:hover { background: transparent; color: var(--brown-deep); }
   .form-note { font-size: 0.78rem; color: var(--gold); font-style: italic; margin-top: 0.5rem; }
 
+  /* ── REQUIRED MARKER ── */
+  .req { color: var(--gold); font-size: 0.8rem; }
+  .field-error { display: block; font-size: 0.73rem; color: #b94040; margin-top: 0.3rem; min-height: 1rem; font-style: italic; }
+
+  /* ── PHONE FIELD ── */
+  .phone-wrap { display: flex; gap: 0; }
+  .phone-code {
+    background: var(--warm-white); border: 1px solid rgba(168,136,74,0.4);
+    border-right: none; color: var(--brown-deep);
+    padding: 0.8rem 0.6rem; font-family: 'Jost', sans-serif;
+    font-size: 0.85rem; font-weight: 300; outline: none;
+    flex-shrink: 0; width: 6.5rem; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23A8884A'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 0.5rem center;
+    padding-right: 1.5rem;
+  }
+  .phone-num {
+    flex: 1; background: var(--warm-white); border: 1px solid rgba(168,136,74,0.4);
+    color: var(--brown-deep); padding: 0.8rem 1rem;
+    font-family: 'Jost', sans-serif; font-size: 0.9rem; font-weight: 300;
+    outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none;
+  }
+  .phone-code:focus, .phone-num:focus { border-color: var(--gold); }
+  .field-invalid { border-color: #b94040 !important; }
+
   /* ── DAY PICKER ── */
   .day-checks { display: flex; gap: 0.7rem; margin-top: 0.2rem; }
   .day-check-item { display: flex; align-items: center; }
@@ -531,25 +557,50 @@
 
   <div class="form-wrap">
     <h3>Send a Message</h3>
-    <form action="https://formspree.io/f/mwvwlwjn" method="POST">
+    <form id="contactForm" action="https://formspree.io/f/mwvwlwjn" method="POST" novalidate>
+
+      <!-- Name + Phone -->
       <div class="form-row">
         <div class="form-group">
-          <label>Parent Name</label>
-          <input type="text" name="parent_name" placeholder="Your name" required>
+          <label>Parent Name <span class="req">*</span></label>
+          <input type="text" id="parent_name" name="parent_name" placeholder="Your full name" required>
+          <span class="field-error" id="err-name"></span>
         </div>
         <div class="form-group">
-          <label>Phone / WhatsApp</label>
-          <input type="tel" name="phone" placeholder="Your number">
+          <label>Phone / WhatsApp <span style="font-size:0.7rem;color:var(--gold);font-style:italic;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <div class="phone-wrap">
+            <select name="country_code" id="country_code" class="phone-code">
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+1-CA">🇨🇦 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+55">🇧🇷 +55</option>
+              <option value="+52">🇲🇽 +52</option>
+              <option value="+34">🇪🇸 +34</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+61">🇦🇺 +61</option>
+              <option value="+other">Other</option>
+            </select>
+            <input type="tel" id="phone" name="phone" class="phone-num"
+              placeholder="(555) 000-0000" maxlength="14"
+              oninput="formatPhone(this)">
+          </div>
+          <span class="field-error" id="err-phone"></span>
         </div>
       </div>
+
+      <!-- Email -->
       <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" name="email" placeholder="your@email.com" required>
+        <label>Email Address <span class="req">*</span></label>
+        <input type="email" id="email" name="email" placeholder="your@email.com" required>
+        <span class="field-error" id="err-email"></span>
       </div>
+
+      <!-- Grade + Day -->
       <div class="form-row">
         <div class="form-group">
-          <label>Child's Grade</label>
-          <select name="grade">
+          <label>Child's Grade <span class="req">*</span></label>
+          <select id="grade" name="grade" required>
             <option value="">Select grade</option>
             <option>Kindergarten</option>
             <option>1st Grade</option>
@@ -558,17 +609,21 @@
             <option>4th Grade</option>
             <option>5th Grade</option>
           </select>
+          <span class="field-error" id="err-grade"></span>
         </div>
         <div class="form-group">
-          <label>Preferred Day <span style="font-size:0.72rem;color:var(--gold);font-style:italic;text-transform:none;letter-spacing:0"> — select one or both</span></label>
+          <label>Preferred Day <span class="req">*</span> <span style="font-size:0.72rem;color:var(--gold);font-style:italic;text-transform:none;letter-spacing:0">— select one or both</span></label>
           <div class="day-checks">
             <div class="day-check-item"><input type="checkbox" id="d1" name="day" value="Monday"><label for="d1">Monday</label></div>
             <div class="day-check-item"><input type="checkbox" id="d2" name="day" value="Thursday"><label for="d2">Thursday</label></div>
           </div>
+          <span class="field-error" id="err-day"></span>
         </div>
       </div>
+
+      <!-- Subjects -->
       <div class="form-group">
-        <label>Subjects Needed <span style="font-size:0.72rem;color:var(--gold);font-style:italic;text-transform:none;letter-spacing:0"> — select all that apply</span></label>
+        <label>Subjects Needed <span class="req">*</span> <span style="font-size:0.72rem;color:var(--gold);font-style:italic;text-transform:none;letter-spacing:0">— select all that apply</span></label>
         <div class="subject-checks">
           <div class="subject-check-item"><input type="checkbox" id="s1" name="subject" value="Mathematics"><label for="s1">Mathematics</label></div>
           <div class="subject-check-item"><input type="checkbox" id="s2" name="subject" value="Reading"><label for="s2">Reading</label></div>
@@ -578,13 +633,17 @@
           <div class="subject-check-item"><input type="checkbox" id="s6" name="subject" value="Study Skills"><label for="s6">Study Skills</label></div>
           <div class="subject-check-item"><input type="checkbox" id="s7" name="subject" value="General Homework Help"><label for="s7">Homework Help</label></div>
         </div>
+        <span class="field-error" id="err-subject"></span>
       </div>
+
+      <!-- Message -->
       <div class="form-group">
         <label>Message</label>
         <textarea name="message" placeholder="Tell me a bit about what your child needs help with..."></textarea>
       </div>
+
       <button type="submit" class="form-submit">Send Message →</button>
-      <p class="form-note">* I'll reply within 24 hours by text or email.</p>
+      <p class="form-note">* Required fields · I'll reply within 24 hours by text or email.</p>
     </form>
   </div>
 </section>
@@ -597,5 +656,102 @@
   <p>$15/hr · Text or WhatsApp: 314-640-9048</p>
 </footer>
 
+<script>
+  /* ── Phone auto-format ── */
+  function formatPhone(el) {
+    const code = document.getElementById('country_code').value;
+    let v = el.value.replace(/\D/g, '');
+    if (code === '+1' || code === '+1-CA') {
+      // US/CA: (555) 000-0000
+      if (v.length > 10) v = v.slice(0, 10);
+      if (v.length <= 3) { el.value = v.length ? '(' + v : ''; }
+      else if (v.length <= 6) { el.value = '(' + v.slice(0,3) + ') ' + v.slice(3); }
+      else { el.value = '(' + v.slice(0,3) + ') ' + v.slice(3,6) + '-' + v.slice(6); }
+    } else {
+      // International: just digits, max 15
+      if (v.length > 15) v = v.slice(0, 15);
+      el.value = v;
+    }
+  }
+
+  /* Reset format when country changes */
+  document.getElementById('country_code').addEventListener('change', function() {
+    const ph = document.getElementById('phone');
+    ph.value = '';
+    ph.placeholder = this.value === '+1' || this.value === '+1-CA' ? '(555) 000-0000' : '000 000 0000';
+  });
+
+  /* ── Validation ── */
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let valid = true;
+
+    const setErr = (id, msg) => {
+      document.getElementById(id).textContent = msg;
+      if (msg) valid = false;
+    };
+    const clearAll = () => ['err-name','err-email','err-grade','err-day','err-subject','err-phone'].forEach(i => document.getElementById(i).textContent = '');
+    clearAll();
+
+    // Name
+    const name = document.getElementById('parent_name');
+    if (!name.value.trim()) { setErr('err-name', 'Please enter your name.'); name.classList.add('field-invalid'); }
+    else name.classList.remove('field-invalid');
+
+    // Email
+    const email = document.getElementById('email');
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+    if (!email.value.trim()) { setErr('err-email', 'Please enter your email address.'); email.classList.add('field-invalid'); }
+    else if (!emailOk) { setErr('err-email', 'Please enter a valid email address.'); email.classList.add('field-invalid'); }
+    else email.classList.remove('field-invalid');
+
+    // Phone — if filled, validate US format
+    const cc = document.getElementById('country_code').value;
+    const ph = document.getElementById('phone').value.replace(/\D/g,'');
+    if (ph.length > 0 && (cc === '+1' || cc === '+1-CA') && ph.length !== 10) {
+      setErr('err-phone', 'US/CA numbers must be 10 digits.');
+      document.getElementById('phone').classList.add('field-invalid');
+    } else {
+      document.getElementById('phone').classList.remove('field-invalid');
+    }
+
+    // Grade
+    const grade = document.getElementById('grade');
+    if (!grade.value) { setErr('err-grade', 'Please select a grade.'); grade.classList.add('field-invalid'); }
+    else grade.classList.remove('field-invalid');
+
+    // Day — at least 1
+    const days = document.querySelectorAll('input[name="day"]:checked');
+    if (days.length === 0) setErr('err-day', 'Please select at least one day.');
+
+    // Subject — at least 1
+    const subjects = document.querySelectorAll('input[name="subject"]:checked');
+    if (subjects.length === 0) setErr('err-subject', 'Please select at least one subject.');
+
+    if (!valid) return;
+
+    // All good — submit
+    const form = this;
+    const btn = form.querySelector('.form-submit');
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+
+    const data = new FormData(form);
+    fetch(form.action, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } })
+      .then(r => {
+        if (r.ok) {
+          form.innerHTML = '<div style="padding:2rem;text-align:center;font-family:\'Cormorant Garamond\',serif;font-size:1.4rem;color:var(--brown-deep);line-height:1.6;">✅<br>Message sent!<br><span style="font-size:1rem;font-family:\'Jost\',sans-serif;color:var(--brown-mid);">I\'ll be in touch within 24 hours.</span></div>';
+        } else {
+          btn.textContent = 'Send Message →';
+          btn.disabled = false;
+          document.querySelector('.form-note').textContent = '⚠ Something went wrong. Please try again or text me directly.';
+        }
+      })
+      .catch(() => {
+        btn.textContent = 'Send Message →';
+        btn.disabled = false;
+      });
+  });
+</script>
 </body>
 </html>
